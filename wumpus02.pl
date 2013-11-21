@@ -1,11 +1,12 @@
 :-load_files([wumpus1]).
 
-:-dynamic([orientacao/1, viradas/1]).
+:-dynamic([orientacao/1, viradas/1, posicao_atual/2]).
 
 init_agent:-
     writeln("Comecando teste"),
 	assert(orientacao(0)),
-	assert(viradas(0)).
+	assert(viradas(0)),
+	assert(posica_atual(1,1)).
 
 restart_agent:-
     init_agent.
