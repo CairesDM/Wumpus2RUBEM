@@ -1,6 +1,6 @@
 :-load_files([wumpus1]).
 
-:-dynamic([orientacao/1]).
+:-dynamic([orientacao/1, viradas/1]).
 
 init_agent:-
     writeln("Comecando teste"),
@@ -18,3 +18,10 @@ atualizar_orientacao_direita :- orientacao(X), retractall(orientacao(_)), Y is X
 atualizar_orientacao_esquerda :- orientacao(270), retractall(orientacao(_)), Y is 0, assert(orientacao(Y)).
 atualizar_orientacao_esquerda :- orientacao(X), retractall(orientacao(_)), Y is X+90, assert(orientacao(Y)).
 
+somar(X):-
+    retractall(viradas(_)),
+    Y is X+1,
+    assert(viradas(Y)).
+zerar:-
+    retractall(viradas(_)),
+    assert(viradas(0)).
