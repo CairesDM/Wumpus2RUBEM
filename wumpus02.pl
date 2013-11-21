@@ -26,6 +26,9 @@ dobrarEsquerda(goforward):- viradas(1), atualizar_orientacao_esquerda, zerar.
 dobrarDireita(turnright) :- viradas(0), somar(0).
 dobrarDireita(goforward) :- viradas(1), atualizar_orientacao_direita, zerar.
 
+atras(turnleft):- viradas(0), somar(0).
+atras(turnleft):- viradas(1), atualizar_orientacao_esquerda, atualizar_orientacao_esquerda, zerar.
+
 somar(X):-
     retractall(viradas(_)),
     Y is X+1,
