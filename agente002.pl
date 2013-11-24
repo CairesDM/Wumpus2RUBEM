@@ -37,7 +37,8 @@ dobrarDireita(turnright) :- viradas(0), somar(0).
 dobrarDireita(goforward) :- viradas(1), zerar, atualizar_orientacao_direita, atualizar_posicao.
 
 atras(turnleft):- viradas(0), somar(0).
-atras(turnleft):- viradas(1), zerar, atualizar_orientacao_esquerda, atualizar_orientacao_esquerda, atualizar_posicao.
+atras(turnleft):- viradas(1),somar(1),
+atras(turnleft):- viradas(2), zerar, atualizar_orientacao_esquerda, atualizar_orientacao_esquerda, atualizar_posicao.
 
 frente(goforward):- atualizar_posicao.
 
