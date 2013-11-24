@@ -42,6 +42,12 @@ atras(turnleft):- viradas(2), zerar, atualizar_orientacao_esquerda, atualizar_or
 
 frente(goforward):- atualizar_posicao.
 
+backtracking(climb):-posicao_atual(1,1).
+backtracking(Ac):- posicao_atual(X,Y), orientacao(O), casas_visitadas(X,Y,P), P = O + 90, dobrarDireita(Ac).
+backtracking(Ac):- posicao_atual(X,Y), orientacao(270), casa_visitadas(X,Y,0), dobrarDireita(Ac).
+backtracking(Ac):- posicao_atual(X,Y), orientacao(O), casas_visitadas(X,Y,P), P = O-90, dobrarEsquerda(Ac).
+backtracking(Ac):- posicao_atual(X,Y), orientacao(0), casas_visitadas(X,Y,270), dobrarEsquerda(Ac).
+backtracking(Ac):- posicao_atual(X,Y), orientacao(O), casas_visitadas(X,Y,P), P = O, frente(Ac).
 
 somar(X):-
     retractall(viradas(_)),
