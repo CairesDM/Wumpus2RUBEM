@@ -1,15 +1,12 @@
 :-load_files([wumpus1]).
 
-:-dynamic([viradas/1, giradas/1, girar_esquerda_ativado/1, girar_direita_ativado/1, orientacao/1, flechas/1, posicao_atual/2, casas_visitadas/3, ativado/1, redirecionando/1, casas_existentes/2]).
+:-dynamic([viradas/1, orientacao/1, flechas/1, posicao_atual/2, casas_visitadas/3, ativado/1, redirecionando/1, casas_existentes/2]).
 
 
 init_agent:-
     writeln('Comecando teste'),
 	retractall(flechas(_)), assert(flechas(1)),
 	retractall(viradas(_)), assert(viradas(0)),
-	retractall(giradas(_)), assert(giradas(0)),
-	retractall(girar_esquerda_ativado(_)), assert(girar_esquerda_ativado(0)),
-	retractall(girar_direita_ativado(_)), assert(girar_direita_ativado(0)),
 	retractall(orientacao(_)), assert(orientacao(0)),%orientacao atual do agente
 	retractall(casas_visitadas(_,_,_)), assert(casas_visitadas(1,1,0)),%guarda a orientacao de onde eu vim eu uma certa casa
 	retractall(posicao_atual(_,_)), assert(posicao_atual(1,1)),%guarda a posicao atual do agente
@@ -30,21 +27,19 @@ run_agent(Pc,Ac):-
     writeln(Pc),
 	agente002(Pc,Ac).
 
-
-agente002([_,_,_,yes,_],Ac):- ajuste_posicao(Ac).
-
-
-agente002([yes,_,_,_,_],shoot):- flechas(1),retractall(flechas(_)),assert(flechas(0)).
-
-agente002([_,_,yes,_,_],Ac):- pegar_ouro(Ac).%ao sentir o brilho, ativa a funcao pegar o ouro.
-agente002(_,Ac):-girar_esquerda_ativado(1), redirecionando(0), ativado(0),girar_esquerda(Ac).
-agente002(_,Ac):-girar_direita_ativado(1), redirecionando(0), ativado(0), girar_direita(Ac).
-
 agente002([_,yes,_,_,_], climb):- posicao_atual(1,1).%caso sentir brisa na primeira casa, o agente sai, pois a probabilidade de morrer é grande.
 
-agente002([_,no,_,_,_],Ac):-redirecionando(0), ativado(0), girar_esquerda_ativado(0), girar_direita_ativado(0), writeln('merda'),frente(Ac).%caso não sentir brisa, e o backtracking e redirecionamento estiverem desligados, o agente     continua a frente.
+agente002([_,_,_,yes,_],Ac):- ativado(0), ajuste_posicao(Ac).
 
-agente002(_,Ac):- ativado(1), writeln('backtracking ativado'), backtracking(Ac).% caso o backtracking estiver ligado, ele o executa.
+agente002([yes,_,_,_,_],Ac):- atras(Ac).
+
+agente002([_,_,yes,_,_],Ac):- pegar_ouro(Ac).%ao sentir o brilho, ativa a funcao pegar o ouro.
+
+agente002(_,Ac):- ativado(1),  writeln('backtracking ativado'), backtracking(Ac).% caso o backtracking estiver ligado, ele o executa.
+
+
+agente002([_,no,_,_,_],Ac):-ativado(0),   redirecionando(0),frente(Ac).%caso não sentir brisa, e o backtracking e redirecionamento estiverem desliga    do, o agente continua a frente.
+
 
 agente002([_,yes,_,_,_], Ac):-  atras(Ac).%ao sentir a brisa, o agente virar para tras.
 
@@ -81,6 +76,7 @@ agente002(_,Ac):-
 
 
 
+
 %funcao que vai para o norte independente da posicao ou orientacao.
 norte(Ac):- orientacao(0), dobrarEsquerda(Ac).
 norte(Ac):- orientacao(90), frente(Ac).
@@ -100,29 +96,6 @@ leste(Ac):- orientacao(270), dobrarEsquerda(Ac).
 oeste(Ac):- orientacao(90), dobrarEsquerda(Ac).
 oeste(Ac):- orientacao(180), frente(Ac).
 oeste(Ac):- orientacao(270), dobrarDireita(Ac).
-
-
-girar_esquerda(turnleft):-writeln('ao'),
-	giradas(0), somar_giradas(0),
-	atualizar_orientacao_esquerda.
-girar_esquerda(Ac):-writeln('ai'),
-	giradas(1), somar_giradas(1),
-	frente(Ac).
-girar_esquerda(turnleft):-writeln('ae'),
-	giradas(2), zerar_giradas,
-	atualizar_orientacao_esquerda,
-	retractall(girar_esquerda_ativado(0)).
-
-girar_direita(turnright):-writeln('ao'),
-   giradas(0), somar_giradas(0),
-   atualizar_orientacao_direita.
-girar_direita(Ac):-
-   giradas(1), somar_giradas(1),
-   frente(Ac).
-girar_direita(turnright):-
-   giradas(2), zerar_giradas,
-   atualizar_orientacao_direita,
-	retractall(girar_direita_ativado(0)).
 
 
 %funcao que vira para tras.
@@ -174,8 +147,8 @@ atualizar_casas_visitadas:-
 	posicao_atual(X,Y), %verifica a posicao atual do agente
 	not(casas_visitadas(X,Y,_)),%verifica se a casa atual ja foi visitada ou nao
 	assert(casas_visitadas(X,Y,O)).%caso nao tenha sido visitada, ele atualiza 
-
 atualizar_casas_visitadas.%caso a casa atual ja foi visitada, esse fato, irá fazer com que a funcao que utilizar a regra prossiga.
+
 
 %atualiza a posicao atual do agente
 atualizar_posicao:-
@@ -208,18 +181,14 @@ atualizar_posicao.%caso a casa a frente nao exista, esse fato irá fazer com que
 
 
 %funcoes para ajustar a trajetoria ao bater na parede
-ajuste_posicao(Ac):-
+ajuste_posicao(turnleft):-
 	orientacao(0),posicao_atual(_,Y),%verifica a orientacao e posicao.
 	Y <4,%verifica se a ordenada da posicao é menor que 4.
-	retractall(girar_esquerda_ativado(_)),
-	assert(girar_esquerda_ativado(1)),
-	girar_esquerda(Ac).%caso sim, ativa girar_esquerda.
-ajuste_posicao(Ac):-
+	atualizar_orientacao_esquerda.
+ajuste_posicao(turnright):-
 	orientacao(0),posicao_atual(_,Y),%verifica a orientacao e posicao.
-	Y=4,
-	retractall(girar_direita_ativado(_)),
-	assert(girar_direita_ativado(1)),
-	girar_direita(Ac).%caso a ordenada for igual a 4, ativa girar_direita.
+	Y=4,%verifica se a ordenada é 4.
+	atualizar_orientacao_direita.
 
 ajuste_posicao(turnright):-
 	orientacao(90),posicao_atual(X,_),%verifica a orientacao e posicao.
@@ -230,18 +199,14 @@ ajuste_posicao(turnleft):-
 	X>2,%caso a abscissa for maior que 2, vira esquerda
 	atualizar_orientacao_esquerda.
 
-ajuste_posicao(Ac):-
+ajuste_posicao(turnright):-
 	orientacao(180),posicao_atual(_,Y),%verifica a orientacao e posicao.
-	Y<4,%caso a ordenada for menor que 4, ativa girar_direita
-	retractall(girar_direita_ativado(_)),
-	assert(girar_direita_ativado(1)),
-	girar_direita(Ac).
-ajuste_posicao(Ac):-
+	Y<4,%caso a ordenada for menor que 4, vira a direita
+	atualizar_orientacao_direita.
+ajuste_posicao(turnleft):-
 	orientacao(180),posicao_atual(_,Y),%verifica a orientacao e posicao.
-	Y=4,%caso a ordenada for 4, ativa girar_esquerda
-	retractall(girar_esquerda_ativado(_)),
-	assert(girar_esquerda_ativado(1)),
-	girar_esquerda(Ac).
+	Y=4,%caso a ordenada for 4, vira a esquerda
+	atualizar_orientacao_esquerda.
 
 ajuste_posicao(turnright):-
 	orientacao(270),posicao_atual(X,_),%verifica a orientacao e posicao.
@@ -258,55 +223,53 @@ ajuste_posicao(turnleft):-
 pegar_ouro(turnleft):-  viradas(0), somar(0).%irá virar para tras.
 pegar_ouro(turnleft):- viradas(1), somar(1).
 pegar_ouro(grab):-viradas(2), atualizar_orientacao_esquerda, atualizar_orientacao_esquerda,%atualiza a orientacao do agente e pega o ouro
-					retractall(ativado(_)),assert(ativado(1)), writeln('ativando backtracking'), zerar.%ativa o backtracking para voltar para posicao 1,1.
+					retractall(ativado(_)), assert(ativado(1)), writeln('ativando backtracking'), zerar.%ativa o backtracking para voltar para posicao 1,1.
+
 
 %contador de viradas usado para realizar mais de uma acao de um vez, como dobrar esquerda
 somar(X):-
     retractall(viradas(_)),
     Y is X+1,
     assert(viradas(Y)).
-
-somar_giradas(X):-
-	retractall(giradas(_)),
-	Y is X+1,
-	assert(giradas(Y)).
-
 %zera o contador de viradas
 zerar:-
     retractall(viradas(_)),
     assert(viradas(0)).
 
-zerar_giradas:-
-	retractall(giradas(_)),
-	assert(giradas(0)). 
 
 backtracking(climb):-posicao_atual(1,1).%se estiver na casa original, sai.
 
 backtracking(Ac):- 
 	posicao_atual(X,Y), orientacao(O), %verifica a posicao atual e a orientacao do agente
-	casas_visitadas(X,Y,P), writeln(P),%verifica a orientacao de onde eu vim, para essa casa.
-	P = O+90, %verifica a relacao entre a orientacao atual e a que eu estava quando cheguei pela primeira vez a esta casa
+	casas_visitadas(X,Y,P),%verifica a orientacao de onde eu vim, para essa casa.
+	P is O+90, %verifica a relacao entre a orientacao atual e a que eu estava quando cheguei pela primeira vez a esta casa
 	dobrarDireita(Ac).%caso a relacao se verifica verdadeira, ele irá realizar essa acao.
 
 %todas as outras sao analogas as de cima
 backtracking(Ac):- 
-	posicao_atual(X,Y), orientacao(270), 
+	posicao_atual(X,Y), orientacao(270),
 	casas_visitadas(X,Y,0),
 	dobrarDireita(Ac).
 
 backtracking(Ac):- 
 	posicao_atual(X,Y), orientacao(O), 
-	casas_visitadas(X,Y,P), 
-	P = O-90, writeln(P),
+	casas_visitadas(X,Y,P),
+	P is O-90,
 	dobrarEsquerda(Ac).
 
 backtracking(Ac):- 
 	posicao_atual(X,Y), orientacao(0), 
 	casas_visitadas(X,Y,270),
 	dobrarEsquerda(Ac).
-backtracking(Ac):- 
+
+backtracking(Ac):-writeln('ai'), 
 	posicao_atual(X,Y), orientacao(O), 
-	casas_visitadas(X,Y,P), writeln(P),
-	P = O+180; P = O -180, 
+	casas_visitadas(X,Y,P), 
+	(P is O+180), 
 	frente(Ac).
+backtracking(Ac):-writeln('oi'),
+     posicao_atual(X,Y), orientacao(O),
+     casas_visitadas(X,Y,P),
+     (P is O-180),
+     frente(Ac).
 
